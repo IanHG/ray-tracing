@@ -6,7 +6,7 @@
 #include "image.hpp"
 #include "Camera.hpp"
 
-#define PI 3.14159
+#define PI 3.141592f
    
 template<class T, int N>
 std::ostream& operator<<(std::ostream& ostr, const static_vector<T, N>& vec)
@@ -32,16 +32,16 @@ void ray_trace
 
          ray r = cam->make_ray(screen_coord);
 
-         float* cur_pixel = img.get_pixel(x, y);
+         color_rgb* cur_pixel = img.get_pixel(x, y);
 
          intersection inter(r);
          if(scene->intersect(inter))
          {
-            *cur_pixel = 1.0f;
+            *cur_pixel = inter.color;
          }
          else
          {
-            *cur_pixel = 0.0f;
+            *cur_pixel = color_rgb{0.0f};
          }
       }
    }
@@ -69,20 +69,22 @@ int main(int argc, const char* argv[])
    ShapeSet scene;
    
    Plane floor
-      {  vector3f{0.0f, 0.0f, 0.0f}
-      ,  vector3f{0.0f, 1.0f, 0.0f}
+      {  vector3f {0.0f, 0.0f, 0.0f}
+      ,  vector3f {0.0f, 1.0f, 0.0f}
+      ,  color_rgb{1.0f, 0.0f, 0.0f}
       };
    scene.add_shape(&floor);
 
    Sphere sphere
       {  vector3f{0.0f, 1.0f, 0.0f}
       ,  1.0f
+      ,  color_rgb{0.0f, 1.0f, 0.0f}
       };
    scene.add_shape(&sphere);
 
    ray_trace(img, &cam, &scene);
 
-   img.save_image("img.ppm");
+   img.save_image("img.ppm", 1.0, 2.2);
 
    return 0;
 }

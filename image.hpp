@@ -6,13 +6,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "color.hpp"
+
 void write_ppm
    (  const std::string& filename
-   ,  float* data
+   ,  color_rgb* data
+   ,  float exposure
+   ,  float gamma
    ,  int width
    ,  int height
    )
 {
+   // Open file
    FILE* image_file = fopen(filename.c_str(), "wb"); 
    if(!image_file)
    {
@@ -26,24 +31,24 @@ void write_ppm
    // Max pixel (saturation?)
    fprintf(image_file, "255\n");
    
+   // 
    int size = width * height;
    std::unique_ptr<unsigned char[]> pix{new unsigned char[size * 3]};
    
    int pix_count = 0;
    for(int i = 0; i < size; ++i)
    {
-      if(data[i] == 1.0f)
-      {
-         pix[pix_count + 0] = 255;
-         pix[pix_count + 1] = 255;
-         pix[pix_count + 2] = 255;
-      }
-      else
-      {
-         pix[pix_count + 0] = 0;
-         pix[pix_count + 1] = 0;
-         pix[pix_count + 2] = 0;
-      }
+      // Get color and apply gamma correction
+      color_rgb current = data[i];
+      current.apply_gamma_correction(exposure, gamma);
+      current.clamp(0.0f, 1.0f);
+      
+      // Take out pixel
+      pix[pix_count + 0] = static_cast<unsigned char>(current.r * 255.0f);
+      pix[pix_count + 1] = static_cast<unsigned char>(current.g * 255.0f);
+      pix[pix_count + 2] = static_cast<unsigned char>(current.b * 255.0f);
+      
+      // Increment counter
       pix_count += 3;
    }
 
@@ -58,7 +63,7 @@ class image
       image(int width, int height)
          :  width(width)
          ,  height(height)
-         ,  data{ new float[width * height] }
+         ,  data{ new color_rgb[width * height] }
       {
       }
 
@@ -72,20 +77,24 @@ class image
          return height;
       }
 
-      float* get_pixel(int x, int y) 
+      color_rgb* get_pixel(int x, int y) 
       {  
          return data.get() + (x + y * width);
       }
 
-      void save_image(const std::string& filename) const
+      void save_image
+         (  const std::string& filename
+         ,  const float exposure
+         ,  const float gamma
+         )  const
       {
-         write_ppm(filename, data.get(), width, height);
+         write_ppm(filename, data.get(), exposure, gamma, width, height);
       }
 
    private:
       int width;
       int height;
-      std::unique_ptr<float[]> data;
+      std::unique_ptr<color_rgb[]> data;
 };
 
 #endif /* RAY_TRACER_IMAGE_HPP_INCLUDED */

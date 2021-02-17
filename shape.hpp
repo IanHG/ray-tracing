@@ -6,6 +6,7 @@
 
 #include "static_vector.hpp"
 #include "ray.hpp"
+#include "color.hpp"
 
 class Shape
 {
@@ -73,11 +74,17 @@ class Plane
    protected:
       vector3f position;
       vector3f normal;
+      color_rgb color;
 
    public:
-      Plane(const vector3f& position, const vector3f& normal)
+      Plane
+         (  const vector3f& position
+         ,  const vector3f& normal
+         ,  const color_rgb& color = color_rgb{1.0f, 1.0f, 1.0f}
+         )
          :  position(position)
          ,  normal  (normal)
+         ,  color   (color)
       {
       }
 
@@ -104,6 +111,7 @@ class Plane
 
          i.t      = t;
          i.pshape = this;
+         i.color  = this->color;
 
          return true;
       }
@@ -134,13 +142,19 @@ class Sphere
    :  public Shape
 {
    protected:
-      vector3f center;
-      float    radius;
+      vector3f  center;
+      float     radius;
+      color_rgb color;
 
    public:
-      Sphere(const vector3f& center, float radius)
+      Sphere
+         (  const vector3f& center
+         ,  float radius
+         ,  const color_rgb& color = color_rgb{1.0f, 1.0f, 1.0f}
+         )
          :  center(center)
          ,  radius(radius)
+         ,  color(color)
       {
       }
 
@@ -181,6 +195,7 @@ class Sphere
          }
 
          i.pshape = this;
+         i.color  = this->color;
 
          return true;
       }

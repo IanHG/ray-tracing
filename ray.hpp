@@ -3,6 +3,7 @@
 #define RAY_TRACER_RAY_HPP_INCLUDED
 
 #include "static_vector.hpp"
+#include "color.hpp"
 
 // RAY_T_MIN, to prevent bouncing rays from self-interacting
 #define RAY_T_MIN 0.0001f
@@ -49,7 +50,8 @@ struct intersection
 {
    ray   r;
    float t       = RAY_T_MAX;
-   Shape *pshape = nullptr; 
+   Shape *pshape = nullptr;
+   color_rgb color;
 
    intersection() = default;
 
