@@ -1,0 +1,65 @@
+#----------------------------------------------------------
+Rays
+#----------------------------------------------------------
+
+Ray tracing:
+   
+   origin    o
+   direction d
+
+   point on the ray 
+      r = o + t * d, 
+   where t is distance (so any positive number, usually).
+
+#----------------------------------------------------------
+Planes
+#----------------------------------------------------------
+Plane:
+   reference point, origin, o
+   normal of the plane,     n
+   
+   Point on the plane r, we have that
+      ( r - p ) * n = 0
+
+A point on the the ray and plane:
+
+   (o_r + t * d - o_p) * n = 0
+
+   o_r * n + (t * d) * n - o_p * n = 0
+
+   (t * d) * n = o_p * n - p_r * n
+
+   t (d * n) = (o_p * n - p_r * n)
+
+   t = 1 / (d*n) * (o_p * n - p_r * n)
+
+   If d * n == 0, then they never meet, or the ray is in the plane.
+
+#----------------------------------------------------------
+Spheres
+#----------------------------------------------------------
+   
+Sphere:
+   store radius and center point
+
+   We assume the sphere is centered at the origin (we can just use that coordinate system).
+   
+   ||p + dt|| = r
+
+   sqrt( (p + dt) * (p + dt)) = r
+
+   ( p + dt ) * (p + dt) = r^2
+
+   p * p + t^2 (d * d) + 2 t (p * d) = r^2
+
+   ||p||^2 + t^2 ||d||^2 + 2 t (p * d) = r^2
+
+   Second degree poly / quadratic equation in t
+
+   a = ||d||^2
+
+   b = 2 (p*d)
+
+   c = ||p||^2 - r^2
+
+   Can have 0, 1, 2 solutions
