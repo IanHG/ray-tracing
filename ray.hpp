@@ -2,6 +2,8 @@
 #ifndef RAY_TRACER_RAY_HPP_INCLUDED
 #define RAY_TRACER_RAY_HPP_INCLUDED
 
+#include <vector>
+
 #include "static_vector.hpp"
 #include "color.hpp"
 
@@ -52,6 +54,7 @@ struct intersection
    float t       = RAY_T_MAX;
    Shape *pshape = nullptr;
    color_rgb color;
+   vector3f normal;
 
    intersection() = default;
 
@@ -73,6 +76,49 @@ struct intersection
    {
       return r.calculate(t);
    }
+};
+
+#include "shape.hpp"
+
+/**
+ *
+ **/
+class light
+{
+   public:
+   	void add_light(const vector3f& source, const color_rgb& intensity)
+   	{
+   		this->source.push_back(source);
+   		this->intensity.push_back(intensity);
+   		n++;
+   	}
+   
+   	color_rgb enlighten(const intersection& inter, Shape* scene) const
+   	{
+   		color_rgb light_rgb = {0.0f, 0.0f, 0.0f};
+   		for (int i = 0; i < n; ++i)
+   		{
+			   ray to_light(inter.position(), (source[i] - inter.position()).normalized());
+   			color_rgb diffused{};
+   			if (!scene->does_intersect(to_light))
+            {
+   			   //diffused += intensity[i] * inter.pshape->get_brightness() * dot(to_light.direction, inter.normal);
+   			   diffused += intensity[i] * inter.color * dot(to_light.direction, inter.normal);
+            }
+   			if (diffused.r >= 0.0f)
+   			   light_rgb.r += diffused.r;
+   			if (diffused.g >= 0.0f)
+   			   light_rgb.g += diffused.g;
+   			if (diffused.b >= 0.0f)
+   			   light_rgb.b += diffused.b;
+   		}
+      
+   		return light_rgb;
+   	}
+   private:
+   	std::vector<vector3f>  source;
+   	std::vector<color_rgb> intensity;
+   	int n = 0;
 };
 
 #endif /* RAY_TRACER_RAY_HPP_INCLUDED */

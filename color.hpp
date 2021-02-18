@@ -131,4 +131,14 @@ inline color_rgb operator*(float f, const color_rgb& c)
    return c * f;
 }
 
+inline std::ostream& operator<<(std::ostream& ostr, const color_rgb& col)
+{
+   ostr << "R" << col.r
+        << "G" << col.g
+        << "B" << col.b
+        ;
+   return ostr;
+}
+
+
 #endif /* RAY_TRACER_COLOR_HPP_INCLUDED */

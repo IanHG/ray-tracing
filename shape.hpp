@@ -8,7 +8,36 @@
 #include "ray.hpp"
 #include "color.hpp"
 
+class reflective_shape
+{
+   public:
+	   void set_reflection(float temp)
+	   { 
+         reflection = temp; 
+      }
+
+	   void set_brightness(float temp)
+	   {  
+         brightness = temp; 
+      }
+
+	   float get_reflection() const
+	   {  
+         return reflection; 
+      }
+
+	   float get_brightness() const
+	   { 
+         return brightness; 
+      }
+
+   private:
+	   float brightness = 1.0f;
+	   float reflection = 0.5f;
+};
+
 class Shape
+   :  public reflective_shape
 {
    public:
       virtual ~Shape() = 0;
@@ -16,6 +45,7 @@ class Shape
       virtual bool intersect(intersection& i)   = 0;
       virtual bool does_intersect(const ray& r) = 0;
 };
+
 
 Shape::~Shape()
 {
@@ -112,6 +142,10 @@ class Plane
          i.t      = t;
          i.pshape = this;
          i.color  = this->color;
+		   if (d_dot_n > 0.0f)
+            i.normal = -normal;
+		   else
+		      i.normal = normal;
 
          return true;
       }
@@ -177,17 +211,20 @@ class Sphere
          {
             return false;
          }
-
-         float t1 = (-b - std::sqrt(discriminant)) / (2.0f * a);
-         float t2 = (-b + std::sqrt(discriminant)) / (2.0f * a);
+   
+         float sqrt_d = std::sqrt(discriminant);
+         float t1 = (-b - sqrt_d) / (2.0f * a);
+         float t2 = (-b + sqrt_d) / (2.0f * a);
 
          if(t1 > RAY_T_MIN && t1 < i.t)
          {
             i.t = t1;
+            i.normal = (i.position() - center) / radius;
          }
          else if(t2 > RAY_T_MIN && t2 < i.t)
          {
             i.t = t2;
+            i.normal = -(i.position() - center) / radius;
          }
          else
          {
@@ -215,14 +252,15 @@ class Sphere
          {
             return false;
          }
-
-         float t1 = (-b - std::sqrt(discriminant)) / (2.0f * a);
+         
+         float sqrt_d = std::sqrt(discriminant);
+         float t1 = (-b - sqrt_d) / (2.0f * a);
          if(t1 > RAY_T_MIN && t1 < r.tmax)
          {
             return true;
          }
          
-         float t2 = (-b + std::sqrt(discriminant)) / (2.0f * a);
+         float t2 = (-b + sqrt_d) / (2.0f * a);
          if(t2 > RAY_T_MIN && t2 < r.tmax)
          {
             return true;

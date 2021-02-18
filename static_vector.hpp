@@ -4,6 +4,7 @@
 
 #include <utility>
 #include <cmath>
+#include <iostream>
 
 /**
  * Static vector class.
@@ -228,11 +229,22 @@ static_vector<T, N> hadamard_div(const static_vector<T, N>& vec1, const static_v
    return hada;
 }
 
+template<class T, int N>
+std::ostream& operator<<(std::ostream& ostr, const static_vector<T, N>& vec)
+{
+   for(int i = 0; i < N; ++i)
+   {
+      ostr << vec.at(i) << " ";
+   }
+   return ostr;
+}
+
 /**
  *
  **/
 using vector2f = static_vector<float, 2>;
 using vector3f = static_vector<float, 3>;
 using vector4f = static_vector<float, 4>;
+
 
 #endif /* RAY_TRACER_STATIC_VECTOR_HPP_INCLUDED */

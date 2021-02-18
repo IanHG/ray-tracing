@@ -8,18 +8,40 @@
 
 #define PI 3.141592f
    
-template<class T, int N>
-std::ostream& operator<<(std::ostream& ostr, const static_vector<T, N>& vec)
+
+color_rgb ray_trace
+   (  const ray& r, Shape* scene, light* lig, int depth = 64
+   )
 {
-   for(int i = 0; i < N; ++i)
+   if(depth == 0)
+      return {};
+
+   intersection inter(r);
+   if(scene->intersect(inter))
    {
-      ostr << vec.at(i) << " ";
+		//diffusion
+		auto diffused_rgb = lig->enlighten(inter, scene);
+		
+		//reflection
+		vector3f reflected_vec = r.direction - 2 * dot(r.direction, inter.normal) * inter.normal;
+   	auto reflected_rgb     = ray_trace(ray{inter.position(), reflected_vec}, scene, lig, depth - 1);
+
+
+		float k = inter.pshape->get_reflection();
+		auto result_rgb = k * reflected_rgb + (1 - k) * diffused_rgb;
+      result_rgb.clamp(0.0f, 1.0f);
+
+		return result_rgb;
    }
-   return ostr;
+   else
+   {
+      return {};
+   }
 }
 
-void ray_trace
-   (  image& img, Camera* cam, Shape* scene)
+void render_image
+   (  image& img, Camera* cam, Shape* scene, light* lig
+   )
 {
    for(int x = 0; x < img.get_width(); ++x)
    {
@@ -32,29 +54,21 @@ void ray_trace
 
          ray r = cam->make_ray(screen_coord);
 
-         color_rgb* cur_pixel = img.get_pixel(x, y);
+         color_rgb result = ray_trace(r, scene, lig);
 
-         intersection inter(r);
-         if(scene->intersect(inter))
-         {
-            *cur_pixel = inter.color;
-         }
-         else
-         {
-            *cur_pixel = color_rgb{0.0f};
-         }
+         *(img.get_pixel(x, y)) = result;
       }
    }
 }
 
 int main(int argc, const char* argv[])
 {
-   int width  = 480;
-   int height = 360;
+   //int width  = 480;
+   //int height = 360;
    //int width  = 800;
    //int height = 600;
-   //int width  = 1920;
-   //int height = 1080;
+   int width  = 1920;
+   int height = 1080;
    
    image img(width, height);
    
@@ -75,14 +89,32 @@ int main(int argc, const char* argv[])
       };
    scene.add_shape(&floor);
 
-   Sphere sphere
+   Sphere sphere1
       {  vector3f{0.0f, 1.0f, 0.0f}
       ,  1.0f
       ,  color_rgb{0.0f, 1.0f, 0.0f}
       };
-   scene.add_shape(&sphere);
+   Sphere sphere2
+      {  vector3f{-0.7f, 1.0f, -3.0f}
+      ,  0.7f
+      ,  color_rgb{0.0f, 0.0f, 1.0f}
+      };
+   Sphere sphere3
+      {  vector3f{-0.7f, 1.0f, 3.0f}
+      ,  0.7f
+      ,  color_rgb{0.0f, 0.0f, 1.0f}
+      };
+   sphere2.set_reflection(0.3);
+   scene.add_shape(&sphere1);
+   scene.add_shape(&sphere2);
+   scene.add_shape(&sphere3);
 
-   ray_trace(img, &cam, &scene);
+   light lig;
+   lig.add_light(vector3f{-1000.0f, 1000.0f, 0.0f}, 4 * color_rgb{0.5f, 0.3f, 0.8f});
+   //lig.add_light(vector3f{0.0f, 1000.0f,  1500.0f}, 2 * color_rgb{0.5f, 0.3f, 0.8f});
+   //lig.add_light(vector3f{0.0f, 1000.0f, -1500.0f}, 4 * color_rgb{0.5f, 0.6f, 0.2f});
+
+   render_image(img, &cam, &scene, &lig);
 
    img.save_image("img.ppm", 1.0, 2.2);
 
