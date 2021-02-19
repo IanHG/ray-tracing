@@ -110,8 +110,9 @@ int main(int argc, const char* argv[])
    scene.add_shape(&sphere3);
 
    light lig;
-   lig.add_light(vector3f{-1000.0f, 1000.0f, 0.0f}, 4 * color_rgb{0.5f, 0.3f, 0.8f});
-   //lig.add_light(vector3f{0.0f, 1000.0f,  1500.0f}, 2 * color_rgb{0.5f, 0.3f, 0.8f});
+   //lig.add_light(vector3f{+1000.0f, 1000.0f, 0.0f}, 4 * color_rgb{0.5f, 0.3f, 0.8f});
+   //lig.add_light(vector3f{-1000.0f, 1000.0f, 0.0f}, 4 * color_rgb{0.5f, 0.3f, 0.8f});
+   lig.add_light(vector3f{0.0f, 1000.0f,  1500.0f}, 4 * color_rgb{0.5f, 0.3f, 0.8f});
    //lig.add_light(vector3f{0.0f, 1000.0f, -1500.0f}, 4 * color_rgb{0.5f, 0.6f, 0.2f});
 
    render_image(img, &cam, &scene, &lig);

@@ -104,6 +104,7 @@ class light
             {
    			   //diffused += intensity[i] * inter.pshape->get_brightness() * dot(to_light.direction, inter.normal);
    			   diffused += intensity[i] * inter.color * dot(to_light.direction, inter.normal);
+   			   //diffused += intensity[i] + inter.color * dot(to_light.direction, inter.normal);
             }
    			if (diffused.r >= 0.0f)
    			   light_rgb.r += diffused.r;

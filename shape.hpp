@@ -7,6 +7,7 @@
 #include "static_vector.hpp"
 #include "ray.hpp"
 #include "color.hpp"
+#include "util.hpp"
 
 class reflective_shape
 {
@@ -205,26 +206,23 @@ class Sphere
          float b = 2.0f * dot(local_ray.direction, local_ray.origin);
          float c = local_ray.origin.magnitude2() - radius * radius;
 
-         float discriminant = b * b - 4 * a * c;
-
-         if(discriminant < 0.0f)
+         float t1, t2;
+         if(!solve_quadratic(a, b, c, t1, t2))
          {
             return false;
          }
-   
-         float sqrt_d = std::sqrt(discriminant);
-         float t1 = (-b - sqrt_d) / (2.0f * a);
-         float t2 = (-b + sqrt_d) / (2.0f * a);
 
          if(t1 > RAY_T_MIN && t1 < i.t)
          {
             i.t = t1;
-            i.normal = (i.position() - center) / radius;
+            float inv_radius = 1.0f / radius;
+            i.normal = (i.position() - center) * inv_radius;
          }
          else if(t2 > RAY_T_MIN && t2 < i.t)
          {
             i.t = t2;
-            i.normal = -(i.position() - center) / radius;
+            float inv_radius = 1.0f / radius;
+            i.normal = -(i.position() - center) * inv_radius;
          }
          else
          {
@@ -246,21 +244,17 @@ class Sphere
          float b = 2.0f * dot(local_ray.direction, local_ray.origin);
          float c = local_ray.origin.magnitude2() - radius * radius;
 
-         float discriminant = b * b - 4 * a * c;
-
-         if(discriminant < 0.0f)
+         float t1, t2;
+         if(!solve_quadratic(a, b, c, t1, t2))
          {
             return false;
          }
          
-         float sqrt_d = std::sqrt(discriminant);
-         float t1 = (-b - sqrt_d) / (2.0f * a);
          if(t1 > RAY_T_MIN && t1 < r.tmax)
          {
             return true;
          }
          
-         float t2 = (-b + sqrt_d) / (2.0f * a);
          if(t2 > RAY_T_MIN && t2 < r.tmax)
          {
             return true;
