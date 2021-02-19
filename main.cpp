@@ -104,16 +104,17 @@ int main(int argc, const char* argv[])
       ,  0.7f
       ,  color_rgb{0.0f, 0.0f, 1.0f}
       };
-   sphere2.set_reflection(0.3);
+   //sphere2.set_reflection(0.3);
    scene.add_shape(&sphere1);
    scene.add_shape(&sphere2);
    scene.add_shape(&sphere3);
 
    light lig;
    //lig.add_light(vector3f{+1000.0f, 1000.0f, 0.0f}, 4 * color_rgb{0.5f, 0.3f, 0.8f});
-   //lig.add_light(vector3f{-1000.0f, 1000.0f, 0.0f}, 4 * color_rgb{0.5f, 0.3f, 0.8f});
-   lig.add_light(vector3f{0.0f, 1000.0f,  1500.0f}, 4 * color_rgb{0.5f, 0.3f, 0.8f});
-   //lig.add_light(vector3f{0.0f, 1000.0f, -1500.0f}, 4 * color_rgb{0.5f, 0.6f, 0.2f});
+   //lig.add_light(vector3f{-2.0f, 2.0f, 0.0f}, 4 * color_rgb{0.5f, 0.3f, 0.8f});
+   //lig.add_light(vector3f{0.0f, 1000.0f,  1500.0f}, 4 * color_rgb{0.5f, 0.3f, 0.8f});
+   lig.add_light(vector3f{-3.0f, 3.0f, +5.0f}, 4 * color_rgb{0.5f, 0.6f, 0.2f});
+   lig.add_light(vector3f{-2.0f, 4.0f, -5.0f}, 3 * color_rgb{0.2f, 0.3f, 0.7f});
 
    render_image(img, &cam, &scene, &lig);
 

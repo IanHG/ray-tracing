@@ -199,12 +199,10 @@ class Sphere
 
       virtual bool intersect(intersection& i)
       {
-         ray local_ray     = i.r;
-         local_ray.origin -= this->center;
-
-         float a = local_ray.direction.magnitude2();
-         float b = 2.0f * dot(local_ray.direction, local_ray.origin);
-         float c = local_ray.origin.magnitude2() - radius * radius;
+         vector3f l = i.r.origin - center;
+         float a    = dot(i.r.direction, i.r.direction);
+         float b    = 2.0f * dot(i.r.direction, l);
+         float c    = dot(l, l) - radius * radius;
 
          float t1, t2;
          if(!solve_quadratic(a, b, c, t1, t2))
@@ -237,12 +235,10 @@ class Sphere
 
       virtual bool does_intersect(const ray& r)
       {
-         ray local_ray     = r;
-         local_ray.origin -= this->center;
-
-         float a = local_ray.direction.magnitude2();
-         float b = 2.0f * dot(local_ray.direction, local_ray.origin);
-         float c = local_ray.origin.magnitude2() - radius * radius;
+         vector3f l = r.origin - center;
+         float a    = dot(r.direction, r.direction);
+         float b    = 2.0f * dot(r.direction, l);
+         float c    = dot(l, l) - radius * radius;
 
          float t1, t2;
          if(!solve_quadratic(a, b, c, t1, t2))
