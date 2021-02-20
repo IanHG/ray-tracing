@@ -103,6 +103,14 @@ struct color_rgb
       this->b *= f;
       return *this;
    }
+   
+   color_rgb& operator/=(const float f)
+   {
+      this->r /= f;
+      this->g /= f;
+      this->b /= f;
+      return *this;
+   }
 };
 
 inline color_rgb operator+(const color_rgb& c1, const color_rgb& c2)
@@ -121,14 +129,22 @@ inline color_rgb operator*(const color_rgb& c1, const color_rgb& c2)
 
 inline color_rgb operator*(const color_rgb& c, float f)
 {
-   color_rgb color{c.r, c.g, c.b};
-   color *= f;
-   return color;
+   return {c.r * f, c.g * f, c.b * f};
 }
 
 inline color_rgb operator*(float f, const color_rgb& c)
 {
    return c * f;
+}
+
+inline color_rgb operator/(const color_rgb& c, float f)
+{
+   return {c.r / f, c.g / f, c.b / f};
+}
+
+inline color_rgb operator/(float f, const color_rgb& c)
+{
+   return c / f;
 }
 
 inline std::ostream& operator<<(std::ostream& ostr, const color_rgb& col)

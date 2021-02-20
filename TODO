@@ -1,0 +1,10 @@
+Geometric solution to sphere intersect:
+   // geometric solution
+   Vec3f L = center - orig; 
+   float tca = L.dotProduct(dir); 
+   // if (tca < 0) return false;
+   float d2 = L.dotProduct(L) - tca * tca; 
+   if (d2 > radius2) return false; 
+   float thc = sqrt(radius2 - d2); 
+   t0 = tca - thc; 
+   t1 = tca + thc; 

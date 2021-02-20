@@ -5,6 +5,7 @@
 #include "shape.hpp"
 #include "image.hpp"
 #include "Camera.hpp"
+//#include "screen.hpp"
 
 #define PI 3.141592f
    
@@ -57,6 +58,40 @@ void render_image
          color_rgb result = ray_trace(r, scene, lig);
 
          *(img.get_pixel(x, y)) = result;
+      }
+   }
+}
+
+void render_image_ssaa
+   (  image& img, Camera* cam, Shape* scene, light* lig
+   )
+{
+   float jitter_matrix[4 * 2] = 
+   {  -1.0/4.0,  3.0/4.0
+   ,   3.0/4.0,  1.0/4.0
+   ,  -3.0/4.0, -1.0/4.0
+   ,   1.0/4.0, -3.0/4.0
+   };
+
+   for(int x = 0; x < img.get_width(); ++x)
+   {
+      for(int y = 0; y < img.get_height(); ++y)
+      {
+         for(int sample = 0; sample < 4; ++sample)
+         {
+            vector2f screen_coord
+               {  ( 2.0f * (x + jitter_matrix[2 * sample + 0])) / img.get_width()  - 1.0f
+               ,  (-2.0f * (y + jitter_matrix[2 * sample + 1])) / img.get_height() + 1.0f
+               };
+
+            ray r = cam->make_ray(screen_coord);
+
+            color_rgb result = ray_trace(r, scene, lig);
+
+            *(img.get_pixel(x, y)) += result;
+         }
+
+         *(img.get_pixel(x, y)) /= 4.0f;
       }
    }
 }
@@ -116,7 +151,8 @@ int main(int argc, const char* argv[])
    lig.add_light(vector3f{-3.0f, 3.0f, +5.0f}, 4 * color_rgb{0.5f, 0.6f, 0.2f});
    lig.add_light(vector3f{-2.0f, 4.0f, -5.0f}, 3 * color_rgb{0.2f, 0.3f, 0.7f});
 
-   render_image(img, &cam, &scene, &lig);
+   //render_image(img, &cam, &scene, &lig);
+   render_image_ssaa(img, &cam, &scene, &lig);
 
    img.save_image("img.ppm", 1.0, 2.2);
 
