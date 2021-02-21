@@ -2,7 +2,7 @@
 #ifndef RAY_TRACER_UTIL_HPP_INCLUDED
 #define RAY_TRACER_UTIL_HPP_INCLUDED
 
-#include <tuple>
+#include <cstdlib>
 
 /**
  * Clamp a value between minimum and maximum.
@@ -13,6 +13,27 @@ inline float clamp(float value, float min, float max)
    if (value > max) return max;
    return value;
 }
+
+/**
+ *
+ **/
+template<class T>
+inline T random_floating_point() 
+{
+   // Returns a random real in [0,1).
+   return rand() / (RAND_MAX + static_cast<T>(1.0));
+}
+
+/**
+ *
+ **/
+template<class T>
+inline T random_floating_point(T min, T max) 
+{
+   // Returns a random real in [min,max).
+   return min + (max-min)*random_floating_point<T>();
+}
+
 
 /**
  *

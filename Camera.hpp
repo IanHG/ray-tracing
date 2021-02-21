@@ -46,6 +46,18 @@ class PerspectiveCamera
          return ray{origin, direction.normalized()};
       }
 
+      void set_position(const vector3f& pos)
+      {
+         origin = pos;
+      }
+      
+      void set_direction(float alfa, float beta)
+      {
+          forward = vector3f(std::cos(beta) * std::cos(alfa), std::cos(beta) * std::sin(alfa), std::sin(beta));
+          right = vector3f(-std::sin(alfa), std::cos(alfa), 0.0f);
+          up = cross(forward, right);
+      }
+
    private:
       // Camera origin
       vector3f origin;

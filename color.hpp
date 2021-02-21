@@ -156,5 +156,10 @@ inline std::ostream& operator<<(std::ostream& ostr, const color_rgb& col)
    return ostr;
 }
 
+inline float convert_to_grayscale(const color_rgb& col)
+{
+   //return 0.299f * col.r + 0.587f * col.g + 0.114f * col.b;
+   return (col.r + col.g + col.b)/ 3.0f;
+}
 
 #endif /* RAY_TRACER_COLOR_HPP_INCLUDED */

@@ -1,15 +1,16 @@
 #include <iostream>
+#include <unistd.h>
 
 #include "static_vector.hpp"
 #include "ray.hpp"
 #include "shape.hpp"
 #include "image.hpp"
 #include "Camera.hpp"
-//#include "screen.hpp"
+#include "screen.hpp"
+#include "frame.hpp"
 
 #define PI 3.141592f
    
-
 color_rgb ray_trace
    (  const ray& r, Shape* scene, light* lig, int depth = 64
    )
@@ -37,6 +38,30 @@ color_rgb ray_trace
    else
    {
       return {};
+   }
+}
+
+void render_screen
+   (  Screen& scr, Camera* cam, Shape* scene, light* lig
+   )
+{
+   for(int x = 0; x < scr.get_width(); ++x)
+   {
+      for(int y = 0; y < scr.get_height(); ++y)
+      {
+         vector2f screen_coord
+            {  ( 2.0f * x) / scr.get_width()  - 1.0f
+            ,  (-2.0f * y) / scr.get_height() + 1.0f
+            };
+
+         ray r = cam->make_ray(screen_coord);
+
+         color_rgb result = ray_trace(r, scene, lig);
+
+         auto result_gray = static_cast<unsigned char>(clamp(convert_to_grayscale(result), 0.0f, 1.0f) * 255.0f);
+         
+         scr.draw_point(x, y, result_gray);
+      }
    }
 }
 
@@ -86,29 +111,36 @@ void render_image_ssaa
 
             ray r = cam->make_ray(screen_coord);
 
-            color_rgb result = ray_trace(r, scene, lig);
+            color_rgb result = /*0.5f * */ ray_trace(r, scene, lig);
 
             *(img.get_pixel(x, y)) += result;
          }
-
-         *(img.get_pixel(x, y)) /= 4.0f;
+         
+         auto scale = 1.0f / 4.0f;
+         *(img.get_pixel(x, y)) *= scale;
       }
    }
 }
 
+
 int main(int argc, const char* argv[])
 {
-   //int width  = 480;
-   //int height = 360;
+   int width  = 210;
+   int height = 2 * 56;
    //int width  = 800;
    //int height = 600;
-   int width  = 1920;
-   int height = 1080;
+   //int width  = 1920;
+   //int height = 1080;
    
    image img(width, height);
+
+   vector3f position{-5.0f, 1.0f, 0.0f};
+   float    pitch = 0.0f; 
+   float    yaw   = 0.0f;
+   float    roll  = 0.0f;
    
    PerspectiveCamera cam
-      {  vector3f{-5.0f, 1.0f, 0.0f}
+      {  position
       ,  vector3f{ 0.0f, 1.0f, 0.0f}
       ,  vector3f{ 0.0f, 1.0f, 0.0f}
       ,  PI / 4.0f
@@ -148,13 +180,40 @@ int main(int argc, const char* argv[])
    //lig.add_light(vector3f{+1000.0f, 1000.0f, 0.0f}, 4 * color_rgb{0.5f, 0.3f, 0.8f});
    //lig.add_light(vector3f{-2.0f, 2.0f, 0.0f}, 4 * color_rgb{0.5f, 0.3f, 0.8f});
    //lig.add_light(vector3f{0.0f, 1000.0f,  1500.0f}, 4 * color_rgb{0.5f, 0.3f, 0.8f});
-   lig.add_light(vector3f{-3.0f, 3.0f, +5.0f}, 4 * color_rgb{0.5f, 0.6f, 0.2f});
-   lig.add_light(vector3f{-2.0f, 4.0f, -5.0f}, 3 * color_rgb{0.2f, 0.3f, 0.7f});
+   //lig.add_light(vector3f{-3.0f, 3.0f, +5.0f}, 4 * color_rgb{0.5f, 0.6f, 0.2f});
+   //lig.add_light(vector3f{-2.0f, 4.0f, -5.0f}, 3 * color_rgb{0.2f, 0.3f, 0.7f});
+   lig.add_light(vector3f{-3.0f, 3.0f, 0.0f},  4 * color_rgb{1.0f, 1.0f, 1.0f});
+   //lig.add_light(vector3f{-2.0f, 4.0f, -5.0f}, 3 * color_rgb{0.2f, 0.3f, 0.7f});
 
    //render_image(img, &cam, &scene, &lig);
-   render_image_ssaa(img, &cam, &scene, &lig);
+   //render_image_ssaa(img, &cam, &scene, &lig);
+   //img.save_image("img.ppm", 1.0, 2.2);
+   //
+   Screen scr{width, height};
+   
+   char  ch;
+   float scale = 0.1;
+   while(true)
+   {
+      if((ch = getch()) != ERR)
+      {
+         if(ch == 'w')
+            position += scale * vector3f{0.1f, 0.0f, 0.0f};
+         else if(ch == 's')
+            position -= scale * vector3f{0.1f, 0.0f, 0.0f};
+         else if(ch == 'd')
+            position += scale * vector3f{0.0f, 0.0f, 0.1f};
+         else if(ch == 'a')
+            position -= scale * vector3f{0.0f, 0.0f, 0.1f};
+         
+         cam.set_position(position);
+      }
 
-   img.save_image("img.ppm", 1.0, 2.2);
+      render_screen(scr, &cam, &scene, &lig);
+      scr.Draw();
+      
+      frame.waitForNextFrame();
+   }
 
    return 0;
 }

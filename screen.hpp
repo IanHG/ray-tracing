@@ -23,39 +23,46 @@ Possible ratios
 12 : 16
 10 : 18
 */
-constexpr int dW = 8, dH = 8;
 
-//int WIDTH  = GetSystemMetrics(SM_CXSCREEN) - dW;
-//int HEIGHT = GetSystemMetrics(SM_CYSCREEN) - dH;
-int WIDTH  = LINES;
-int HEIGHT = COLS;
+constexpr int dW = 1, dH = 2;
 
-class Screen {
-public:
-    Screen(){
-        Setup();
-        Clear();
-    }
+class Screen 
+{
+   public:
+      Screen(int width, int height)
+         :  width (width)
+         ,  height(height)
+         ,  canvas{new byte[width * height]}
+      {
+         Setup();
+         clear();
+      }
 
-    void Clear() {
-        for (int i = 0; i < HEIGHT; i++) {
-            for (int j = 0; j < WIDTH; j++) {
-                canvas[i* WIDTH +j] = 0;
+      void clear() 
+      {
+         for (int i = 0; i < height; i++) 
+         {
+            for (int j = 0; j < width; j++) 
+            {
+               canvas[i* width + j] = 0;
             }
-        }
-    }
+         }
+      }
 
-    void DrawPoint(int A, int B, byte luminance = 255) {
-        if (A < 0 || B < 0 || A >= HEIGHT || B >= WIDTH) {
+      void draw_point(int x, int y, byte luminance = 255) 
+      {
+         if (x < 0 || y < 0 || x >= width || y >= height) 
+         {
             return;
-        }
+         }
 
-        canvas[A * WIDTH + B] = luminance;
-    }
+         canvas[x + y * width] = luminance;
+      }
 
-    void Draw() {
+      void Draw() 
+      {
         //allocate
-        int Y = HEIGHT / dH, X = WIDTH / dW + 1;
+        int Y = height / dH, X = width / dW + 1;
      
         char* frame=new char[Y*X];
 
@@ -71,7 +78,7 @@ public:
                 // calculating brightness
                 for (int k = 0; k < dH; k++) {
                     for (int l = 0; l < dW; l++) {
-                        count += canvas[(dH * i + k)* WIDTH +(dW * j + l)];
+                        count += canvas[(dH * i + k)* width +(dW * j + l)];
                     }
                 }
                 frame[X*i+j] = brightness(count);
@@ -88,81 +95,106 @@ public:
         }
         FillScreenWithString(frame);
         delete[] frame;
-    }
+      }
 
-    int Height() const {
-        return HEIGHT;
-    }
+      int get_height() const 
+      {
+         return height;
+      }
 
-    int Width() const {
-        return WIDTH;
-    }
+      int get_width() const 
+      {
+         return width;
+      }
 
-    void set_palette(int palette) {
-        this->_palette = palette;
-    }
+      void set_palette(int pal) 
+      {
+         this->palette = pal;
+      }
 
-    ~Screen()
-    {
-        delete[] canvas;
-    }
-private:
-    byte* canvas=new byte[HEIGHT*WIDTH];
-    int _palette = 0;
+      ~Screen()
+      {
+         endwin();
+      }
 
-    void Setup();
-    void FillScreenWithString(const char *frame);
+   private:
+      int   palette = 1;
+      int   width   = 0;
+      int   height  = 0;
+      //int   dW      = 0;
+      //int   dH      = 0;
+      std::unique_ptr<byte[]> canvas = nullptr;
 
-    char brightness(int count) const {
-        static const struct {
+      void Setup();
+      void FillScreenWithString(const char *frame);
+
+      char brightness(int count) const 
+      {
+         static const struct 
+         {
             int n;
             const char s[19];
-        } p[] = {
-            {7, " .:+%#@"},
-            {18, " .,^:-+abcdwf$&%#@"},
-            {3, " .:"},
-        };
-        if (0 <= _palette && _palette <= 2) {
-            const auto &pal = p[_palette];
+         } p[] 
+            =  {  {7, " .:+%#@"}
+               ,  {18, " .,^:-+abcdwf$&%#@"}
+               ,  {3, " .:"}
+               };
+
+         if (0 <= palette && palette <= 2) 
+         {
+            const auto &pal = p[palette];
             return pal.s[count * (pal.n) / 256 / dW / dH];
-        } else {
+         } 
+         else 
+         {
             return ' ';
-        }
-    }
+         }
+      }
 };
 
 
 void Screen::FillScreenWithString(const char *frame) {
-    //COORD coord = {0, 0};
-    //SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
-    //fputs(frame,stdout);
-    mvprintw(row/2,(col-strlen(frame))/2,"%s", frame);
+   mvprintw(0, 0, "%s", frame);
+   refresh();
+   
+   //std::cout << " PRINTING FRAME " << std::endl;
+   //std::cout << frame << std::endl;
 }
 
-void Screen::Setup() {
-    //this function is a mess, just ignore it
-    initscr();
+void Screen::Setup() 
+{
+   //this function is a mess, just ignore it
+   initscr();
+   keypad(stdscr, TRUE);
+   cbreak();
+   noecho();
+   curs_set(0);
 
-    CONSOLE_FONT_INFOEX cf = {0};
-    cf.cbSize = sizeof cf;
-    cf.dwFontSize.X = dW;
-    cf.dwFontSize.Y = dH;
-    wcscpy_s(cf.FaceName, L"Terminal");
-    SetCurrentConsoleFontEx(GetStdHandle(STD_OUTPUT_HANDLE), 0, &cf);
+   //std::cout << LINES << " " << COLS << std::endl;
 
-    HWND console = GetConsoleWindow();
-    RECT ConsoleRect;
-    GetWindowRect(console, &ConsoleRect);
-    HANDLE hstdout = GetStdHandle(STD_OUTPUT_HANDLE);
-    CONSOLE_SCREEN_BUFFER_INFO csbi;
-    GetConsoleScreenBufferInfo(hstdout, &csbi);
+   //CONSOLE_FONT_INFOEX cf = {0};
+   //cf.cbSize = sizeof cf;
+   //cf.dwFontSize.X = dW;
+   //cf.dwFontSize.Y = dH;
+   //wcscpy_s(cf.FaceName, L"Terminal");
+   //SetCurrentConsoleFontEx(GetStdHandle(STD_OUTPUT_HANDLE), 0, &cf);
 
-    csbi.dwSize.X = csbi.dwMaximumWindowSize.X;
-    csbi.dwSize.Y = csbi.dwMaximumWindowSize.Y;
-    SetConsoleScreenBufferSize(hstdout, csbi.dwSize);
-    MoveWindow(console, 0, 0, WIDTH, HEIGHT, TRUE);
-    SetConsoleDisplayMode(hstdout, CONSOLE_FULLSCREEN_MODE, 0);
-    ShowScrollBar(console, SB_BOTH, FALSE);
+   //HWND console = GetConsoleWindow();
+   //RECT ConsoleRect;
+   //GetWindowRect(console, &ConsoleRect);
+   //HANDLE hstdout = GetStdHandle(STD_OUTPUT_HANDLE);
+   //CONSOLE_SCREEN_BUFFER_INFO csbi;
+   //GetConsoleScreenBufferInfo(hstdout, &csbi);
+
+   //csbi.dwSize.X = csbi.dwMaximumWindowSize.X;
+   //csbi.dwSize.Y = csbi.dwMaximumWindowSize.Y;
+   //SetConsoleScreenBufferSize(hstdout, csbi.dwSize);
+   //MoveWindow(console, 0, 0, width, height, TRUE);
+   //SetConsoleDisplayMode(hstdout, CONSOLE_FULLSCREEN_MODE, 0);
+   //ShowScrollBar(console, SB_BOTH, FALSE);
+   
+   clear();
+   refresh();
 }
 
 #endif /* RAY_TRACER_SCREEN_HPP_INCLUDED */
