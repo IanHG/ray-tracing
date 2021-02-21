@@ -197,6 +197,11 @@ class Sphere
       {
       }
 
+      void set_center(const vector3f& pos)
+      {
+         center = pos;
+      }
+
       virtual bool intersect(intersection& i)
       {
          vector3f l = i.r.origin - center;

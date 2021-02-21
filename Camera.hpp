@@ -51,11 +51,29 @@ class PerspectiveCamera
          origin = pos;
       }
       
-      void set_direction(float alfa, float beta)
+      void set_direction(float yaw, float pitch, float roll)
       {
-          forward = vector3f(std::cos(beta) * std::cos(alfa), std::cos(beta) * std::sin(alfa), std::sin(beta));
-          right = vector3f(-std::sin(alfa), std::cos(alfa), 0.0f);
-          up = cross(forward, right);
+          forward = vector3f
+                     (  std::cos(yaw) * std::cos(pitch)
+                     ,  std::sin(yaw) * std::cos(pitch)
+                     ,  std::sin(pitch)
+                     );
+          right   = vector3f
+                     (  -std::cos(yaw) * std::sin(pitch) * std::cos(roll) + std::sin(yaw) * std::sin(roll)
+                     ,  -std::sin(yaw) * std::sin(pitch) * std::cos(roll) - std::cos(yaw) * std::sin(roll)
+                     ,  std::cos(pitch) * std::cos(roll)
+                     );
+          up      = cross(forward, right);
+      }
+
+      vector3f get_forward() const
+      {
+         return forward;
+      }
+      
+      vector3f get_right() const
+      {
+         return right;
       }
 
    private:

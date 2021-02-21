@@ -137,7 +137,7 @@ int main(int argc, const char* argv[])
    vector3f position{-5.0f, 1.0f, 0.0f};
    float    pitch = 0.0f; 
    float    yaw   = 0.0f;
-   float    roll  = 0.0f;
+   float    roll  = PI;
    
    PerspectiveCamera cam
       {  position
@@ -155,9 +155,10 @@ int main(int argc, const char* argv[])
       ,  color_rgb{1.0f, 0.0f, 0.0f}
       };
    scene.add_shape(&floor);
-
+   
+   vector3f sphere1_position{0.0f, 1.0f, 0.0f};
    Sphere sphere1
-      {  vector3f{0.0f, 1.0f, 0.0f}
+      {  sphere1_position
       ,  1.0f
       ,  color_rgb{0.0f, 1.0f, 0.0f}
       };
@@ -182,7 +183,7 @@ int main(int argc, const char* argv[])
    //lig.add_light(vector3f{0.0f, 1000.0f,  1500.0f}, 4 * color_rgb{0.5f, 0.3f, 0.8f});
    //lig.add_light(vector3f{-3.0f, 3.0f, +5.0f}, 4 * color_rgb{0.5f, 0.6f, 0.2f});
    //lig.add_light(vector3f{-2.0f, 4.0f, -5.0f}, 3 * color_rgb{0.2f, 0.3f, 0.7f});
-   lig.add_light(vector3f{-3.0f, 3.0f, 0.0f},  4 * color_rgb{1.0f, 1.0f, 1.0f});
+   lig.add_light(vector3f{-2.0f, 4.0f, 1.0f},  5 * color_rgb{1.0f, 1.0f, 1.0f});
    //lig.add_light(vector3f{-2.0f, 4.0f, -5.0f}, 3 * color_rgb{0.2f, 0.3f, 0.7f});
 
    //render_image(img, &cam, &scene, &lig);
@@ -192,21 +193,38 @@ int main(int argc, const char* argv[])
    Screen scr{width, height};
    
    char  ch;
-   float scale = 0.1;
+   float scale       = 0.05f;
+   float scale_angle = 1.0f;
    while(true)
    {
       if((ch = getch()) != ERR)
       {
          if(ch == 'w')
-            position += scale * vector3f{0.1f, 0.0f, 0.0f};
-         else if(ch == 's')
-            position -= scale * vector3f{0.1f, 0.0f, 0.0f};
-         else if(ch == 'd')
-            position += scale * vector3f{0.0f, 0.0f, 0.1f};
-         else if(ch == 'a')
-            position -= scale * vector3f{0.0f, 0.0f, 0.1f};
+            position += scale * cam.get_forward();
+         if(ch == 's')
+            position -= scale * cam.get_forward();
+         if(ch == 'd')
+            position += scale * cam.get_right();
+         if(ch == 'a')
+            position -= scale * cam.get_right();
+		   if (ch == 'l')	
+            pitch -= scale_angle * 1.0f / 120.0f / 5.0f * (2.0f * PI);
+		   if (ch == 'j')	
+            pitch += scale_angle * 1.0f / 120.0f / 5.0f * (2.0f * PI);
+		   if (ch == 'i')	
+            yaw += scale_angle * 1.0f / 120.0f / 5.0f * (2.0f * PI);
+		   if (ch == 'k')	
+            yaw -= scale_angle * 1.0f / 120.0f / 5.0f * (2.0f * PI);
          
-         cam.set_position(position);
+         if(ch == 'b')
+            sphere1_position += scale * vector3f{0.1f, 0.0f, 0.0f};
+         if(ch == 'n')
+            sphere1_position -= scale * vector3f{0.1f, 0.0f, 0.0f};
+
+         sphere1.set_center(sphere1_position);
+         
+         cam.set_position (position);
+         cam.set_direction(yaw, pitch, roll); 
       }
 
       render_screen(scr, &cam, &scene, &lig);
