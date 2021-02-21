@@ -138,9 +138,10 @@ class Screen
             =  {  {7, " .:+%#@"}
                ,  {18, " .,^:-+abcdwf$&%#@"}
                ,  {3, " .:"}
+               ,  {10, " .:-=+*#%@"}
                };
 
-         if (0 <= palette && palette <= 2) 
+         if (0 <= palette && palette <= 3) 
          {
             const auto &pal = p[palette];
             return pal.s[count * (pal.n) / 256 / dW / dH];
