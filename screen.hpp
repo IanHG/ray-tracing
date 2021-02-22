@@ -112,6 +112,11 @@ class Screen
          this->palette = pal;
       }
 
+      void refresh()
+      {
+         ::refresh();
+      }
+
       ~Screen()
       {
          endwin();
@@ -156,7 +161,6 @@ class Screen
 
 void Screen::FillScreenWithString(const char *frame) {
    mvprintw(0, 0, "%s", frame);
-   refresh();
    
    //std::cout << " PRINTING FRAME " << std::endl;
    //std::cout << frame << std::endl;
@@ -170,6 +174,7 @@ void Screen::Setup()
    cbreak();
    noecho();
    curs_set(0);
+   nodelay(stdscr, true);
 
    //std::cout << LINES << " " << COLS << std::endl;
 

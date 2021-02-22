@@ -195,30 +195,50 @@ int main(int argc, const char* argv[])
    char  ch;
    float scale       = 0.05f;
    float scale_angle = 1.0f;
+   
+   constexpr int keyboard_buffer_size = 9;
+   char keyboard_buffer[keyboard_buffer_size];
+
+   auto fill_keyboard_buffer = [](char* buffer, int size)
+   {
+      char ch;
+      int count = 0;
+      for(int i = 0; i < size - 1; ++i)
+      {
+         if((ch = getch()) != ERR)
+         {
+            buffer[i] = ch;
+            ++count;
+         }
+      }
+      buffer[count] = '\0';
+
+      return count != 0;
+   };
+
    while(true)
    {
       if((ch = getch()) != ERR)
       {
          if(ch == 'w')
             position += scale * cam.get_forward();
-         if(ch == 's')
+         else if(ch == 's')
             position -= scale * cam.get_forward();
-         if(ch == 'd')
+         else if(ch == 'd')
             position += scale * cam.get_right();
-         if(ch == 'a')
+         else if(ch == 'a')
             position -= scale * cam.get_right();
-		   if (ch == 'l')	
-            pitch -= scale_angle * 1.0f / 120.0f / 5.0f * (2.0f * PI);
-		   if (ch == 'j')	
+         else if (ch == 'l')	
             pitch += scale_angle * 1.0f / 120.0f / 5.0f * (2.0f * PI);
-		   if (ch == 'i')	
+         else if (ch == 'j')	
+            pitch -= scale_angle * 1.0f / 120.0f / 5.0f * (2.0f * PI);
+         else if (ch == 'i')	
             yaw += scale_angle * 1.0f / 120.0f / 5.0f * (2.0f * PI);
-		   if (ch == 'k')	
+         else if (ch == 'k')	
             yaw -= scale_angle * 1.0f / 120.0f / 5.0f * (2.0f * PI);
-         
-         if(ch == 'b')
+         else if(ch == 'b')
             sphere1_position += scale * vector3f{0.1f, 0.0f, 0.0f};
-         if(ch == 'n')
+         else if(ch == 'n')
             sphere1_position -= scale * vector3f{0.1f, 0.0f, 0.0f};
 
          sphere1.set_center(sphere1_position);
@@ -226,10 +246,11 @@ int main(int argc, const char* argv[])
          cam.set_position (position);
          cam.set_direction(yaw, pitch, roll); 
       }
-
+      
       render_screen(scr, &cam, &scene, &lig);
       scr.Draw();
-      
+      frame.show_frame_rate(scr, 0, 0);
+      scr.refresh();
       frame.waitForNextFrame();
    }
 

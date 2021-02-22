@@ -5,6 +5,9 @@
 #include <chrono>
 #include <thread>
 #include <sstream>
+#include <cstdlib>
+
+#include "screen.hpp"
 
 /**
  * Struct for controlling when to draw next frame.
@@ -23,13 +26,12 @@ struct
       std::this_thread::sleep_until(next_frame);
    }
 
-   std::string showFrameRate() const
+   void show_frame_rate(Screen& scr, int y, int x) const
    {      
-      std::stringstream s_str;
-      s_str << "Time: "  // just for monitoring purposes
-            << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - last_frame).count()
-            << "ms\n";
-      return s_str.str();
+      int fps = 1000 / std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - last_frame).count();
+      char buffer[8];
+      sprintf(buffer, "%d", fps);
+      mvprintw(y, x, "%s", buffer);
    }
 } frame;
 
