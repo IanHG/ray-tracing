@@ -48,7 +48,7 @@ int colorize(char* buffer, unsigned char r, unsigned char g, unsigned char b)
    //    foreground: 38
    //    background: 48
    //printf(CSI "%d;2;%d;%d;%dm%c", /* foreground */ 38, r, g, b, ch);
-   return sprintf(buffer, CSI "%d;2;%d;%d;%dm", /* foreground */ 38, r, g, b);
+   return sprintf(buffer, CSI "%d;2;%d;%d;%dm", /* foreground */ 48, r, g, b);
 }
 
 int my_addch(char* buffer, char ch)
@@ -206,7 +206,8 @@ void screen_rgb::draw()
          count.r /= (dH * dW);
          count.g /= (dH * dW);
          count.b /= (dH * dW);
-         //count.apply_gamma_correction(1.0, 2.2);
+         
+         count.apply_gamma_correction(1.0, 2.2);
          
          //count *= inv;
             //{  .r = static_cast<unsigned char>(clamp(result.r, 0.0f, 1.0f) * 255.0f)
@@ -225,7 +226,7 @@ void screen_rgb::draw()
          if( r != r_prev || g != g_prev || b != b_prev )
             frame_buffer_head += colorize(frame_buffer_head, r, g, b);
 
-         frame_buffer_head += my_addch(frame_buffer_head, br);
+         frame_buffer_head += my_addch(frame_buffer_head, ' ');
 
          r_prev = r;
          g_prev = g;
