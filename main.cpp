@@ -243,12 +243,12 @@ int main(int argc, const char* argv[])
    //
    //Screen scr{width, height};
    
-   initscr();
-   keypad(stdscr, TRUE);
-   cbreak();
-   noecho();
-   curs_set(0);
-   nodelay(stdscr, true);
+   //initscr();
+   //keypad(stdscr, TRUE);
+   //cbreak();
+   //noecho();
+   //curs_set(0);
+   //nodelay(stdscr, true);
    
    screen_rgb scr{width, height};
    
@@ -322,15 +322,7 @@ int main(int argc, const char* argv[])
       frame.waitForNextFrame();
    }
 
-   
-   ////init_tty();
-   //my_clear();
-   //std::cout << MOV(2, 2) << std::flush;
-   ////move(1,1);
-   //printf(HCS);
-   //colorize('a', 100, 123, 5);
-   //printf(SCS);
-   ////restore_tty();
+   //endwin();
 
    return 0;
 }

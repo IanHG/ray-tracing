@@ -22,7 +22,7 @@ struct
    void waitForNextFrame()
    {
       // Wait for next frame
-      last_frame = next_frame;
+      last_frame  = next_frame;
       next_frame += frame;
       std::this_thread::sleep_until(next_frame);
    }

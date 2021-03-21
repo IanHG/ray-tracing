@@ -31,17 +31,17 @@ void my_clear()
 }
 
 // Move cursor to position
-int my_move(char* buffer, int x, int y)
+inline int my_move(char* buffer, int x, int y)
 //int my_move(int x, int y)
 {
    // x + 1 and y + 1 ??
-   return sprintf(buffer, CSI "%d;%dH", y, x);
+   return sprintf(buffer, CSI "%d;%dH", y + 1, x + 1);
    //printf(CSI "%d;%dH", y + 1, x + 1);
 }
 
 // Colorize
 //int colorize(char* buffer, char ch, int r, int g, int b)
-int colorize(char* buffer, unsigned char r, unsigned char g, unsigned char b)
+inline int colorize(char* buffer, unsigned char r, unsigned char g, unsigned char b)
 //void colorize(char ch, unsigned char r, unsigned char g, unsigned char b)
 {
    // Set foreground/background coloring, and RGB value
@@ -51,7 +51,7 @@ int colorize(char* buffer, unsigned char r, unsigned char g, unsigned char b)
    return sprintf(buffer, CSI "%d;2;%d;%d;%dm", /* foreground */ 48, r, g, b);
 }
 
-int my_addch(char* buffer, char ch)
+inline int my_addch(char* buffer, char ch)
 {
    return sprintf(buffer, "%c", ch);
 }
@@ -109,8 +109,8 @@ struct screen_rgb
          ,  frame_buffer(new char[25 * width * height])
          ,  frame_buffer_head(frame_buffer.get())
       {
-         init();
          clear();
+         init();
       }
 
       void clear() 
@@ -130,8 +130,9 @@ struct screen_rgb
 
       ~screen_rgb()
       {
+         printf(CLS);
+         printf(SCS);
          restore_tty();
-         std::cout << SCS;
       }
 
    public:
@@ -209,7 +210,7 @@ void screen_rgb::draw()
    int count = 0;
    for (int y = 0; y < height; ++y) 
    {
-      frame_buffer_head += my_move(frame_buffer_head, 0, y);
+      //frame_buffer_head += my_move(frame_buffer_head, 0, y);
 
       for (int x = 0; x < width; ++x) 
       {
@@ -221,40 +222,40 @@ void screen_rgb::draw()
          //std::cout << " canvas      : " << canvas     [count] << std::endl;
          //std::cout << " canvas_last : " << canvas_last[count] << std::endl;
 
-         //if(canvas[count] != canvas_last[count])
-         //{
-         //   //std::cout << " NOT EQUAL " << std::endl;
-         //   lum_rgb curr = canvas[count];
-
-         //   if( (y != y_prev) || (x != (x_prev + 1)) )
-         //   {
-         //      //std::cout << " MOVING " << std::endl;
-         //      frame_buffer_head += my_move(frame_buffer_head, x, y);
-         //   }
-
-         //   if( curr.r != prev.r || curr.g != prev.g || curr.b != prev.b )
-         //   {
-         //      frame_buffer_head += colorize(frame_buffer_head, curr.r, curr.g, curr.b);
-         //   }
-
-         //   //frame_buffer_head += my_addch(frame_buffer_head, brightness(curr.lum));
-         //   frame_buffer_head += my_addch(frame_buffer_head, ' ');
-         //   
-         //   prev   = curr;
-         //   x_prev = x;
-         //   y_prev = y;
-         //}
-         
-         lum_rgb curr = canvas[count];
-         //std::cout << x << " " << y << " " << curr << std::endl;
-         if( curr.r != prev.r || curr.g != prev.g || curr.b != prev.b )
+         if(canvas[count] != canvas_last[count])
          {
-            frame_buffer_head += colorize(frame_buffer_head, curr.r, curr.g, curr.b);
+            //std::cout << " NOT EQUAL " << std::endl;
+            lum_rgb curr = canvas[count];
+
+            if( (y != y_prev) || (x != (x_prev + 1)) )
+            {
+               //std::cout << " MOVING " << std::endl;
+               frame_buffer_head += my_move(frame_buffer_head, x, y);
+            }
+
+            if( curr.r != prev.r || curr.g != prev.g || curr.b != prev.b )
+            {
+               frame_buffer_head += colorize(frame_buffer_head, curr.r, curr.g, curr.b);
+            }
+
+            //frame_buffer_head += my_addch(frame_buffer_head, brightness(curr.lum));
+            frame_buffer_head += my_addch(frame_buffer_head, ' ');
+            
+            prev   = curr;
+            x_prev = x;
+            y_prev = y;
          }
-         //frame_buffer_head += colorize(frame_buffer_head, curr.r, curr.g, curr.b);
-         //frame_buffer_head += my_addch(frame_buffer_head, brightness(curr.lum));
-         frame_buffer_head += my_addch(frame_buffer_head, ' ');
-         prev   = curr;
+         
+         //lum_rgb curr = canvas[count];
+         ////std::cout << x << " " << y << " " << curr << std::endl;
+         //if( curr.r != prev.r || curr.g != prev.g || curr.b != prev.b )
+         //{
+         //   frame_buffer_head += colorize(frame_buffer_head, curr.r, curr.g, curr.b);
+         //}
+         ////frame_buffer_head += colorize(frame_buffer_head, curr.r, curr.g, curr.b);
+         ////frame_buffer_head += my_addch(frame_buffer_head, brightness(curr.lum));
+         //frame_buffer_head += my_addch(frame_buffer_head, ' ');
+         //prev   = curr;
 
          ++count;
       }
@@ -262,7 +263,8 @@ void screen_rgb::draw()
 
    (*frame_buffer_head) = '\0';
 
-   memcpy(canvas_last.get(), canvas.get(), height * width * sizeof(lum_rgb));
+   //memcpy(canvas_last.get(), canvas.get(), height * width * sizeof(lum_rgb));
+   std::swap(canvas, canvas_last);
 }
 
 void screen_rgb::refresh()
@@ -280,9 +282,36 @@ void screen_rgb::init()
       std::exit(1);
    }
    my_clear();
-   //std::cout << MOV(0,0);
    printf(HCS);
-   //std::cout << HCS << MOV(0, 0);
+
+   // Dump initial canvas to screen
+   this->frame_buffer_head = frame_buffer.get();
+   int count = 0;
+   frame_buffer_head += colorize(frame_buffer_head, prev.r, prev.g, prev.b);
+   for (int y = 0; y < height; ++y) 
+   {
+      frame_buffer_head += my_move(frame_buffer_head, 0, y);
+      for (int x = 0; x < width; ++x) 
+      {
+         lum_rgb curr = canvas[count];
+         if( curr.r != prev.r || curr.g != prev.g || curr.b != prev.b )
+         {
+            frame_buffer_head += colorize(frame_buffer_head, curr.r, curr.g, curr.b);
+         }
+         frame_buffer_head += my_addch(frame_buffer_head, ' ');
+         prev   = curr;
+         ++count;
+      }
+   }
+
+   (*frame_buffer_head) = '\0';
+   
+   std::swap(canvas, canvas_last);
+   
+   x_prev = this->width  - 1;
+   y_prev = this->height - 1;
+
+   this->refresh();
 }
 
 #endif /* RAY_TRACER_SCREEN_HPP_INCLUDED */
