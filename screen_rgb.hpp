@@ -92,8 +92,9 @@ bool init_tty() {
 
 struct screen_rgb
 {
-   struct rgb
+   struct lum_rgb
    {
+      unsigned char lum;
       unsigned char r;
       unsigned char g;
       unsigned char b;
@@ -103,7 +104,8 @@ struct screen_rgb
       screen_rgb(int width, int height)
          :  width (width)
          ,  height(height)
-         ,  canvas{new color_rgb[width * height]}
+         ,  canvas     {new lum_rgb[width * height]}
+         ,  canvas_last{new lum_rgb[width * height]}
          ,  frame_buffer(new char[25 * width * height])
          ,  frame_buffer_head(frame_buffer.get())
       {
@@ -117,7 +119,8 @@ struct screen_rgb
          {
             for (int j = 0; j < width; j++) 
             {
-               canvas[i* width + j] = { .r = 0, .g = 0, .b = 0 };
+               canvas     [i* width + j] = { .lum = 0, .r = 0, .g = 0, .b = 0 };
+               canvas_last[i* width + j] = { .lum = 0, .r = 0, .g = 0, .b = 0 };
             }
          }
       }
@@ -136,10 +139,15 @@ struct screen_rgb
       int   width   = 0;
       int   height  = 0;
       
-      std::unique_ptr<color_rgb[]> canvas = nullptr;
+      std::unique_ptr<lum_rgb[]> canvas      = nullptr;
+      std::unique_ptr<lum_rgb[]> canvas_last = nullptr;
 
       std::unique_ptr<char[]> frame_buffer      = nullptr;
       char*                   frame_buffer_head = nullptr;
+      lum_rgb                 prev{ .lum = static_cast<unsigned char>(0), .r = static_cast<unsigned char>(0), .g = static_cast<unsigned char>(0), .b = static_cast<unsigned char>(0)};
+      int                     x_prev = width  + 1;
+      int                     y_prev = height + 1;
+
    private:
 
       void init();
@@ -171,69 +179,85 @@ struct screen_rgb
       }
 };
 
+inline bool operator!=(const screen_rgb::lum_rgb& lhs, const screen_rgb::lum_rgb& rhs)
+{
+   return      (lhs.lum != rhs.lum) 
+            || (lhs.r   != rhs.r)
+            || (lhs.g   != rhs.g)
+            || (lhs.b   != rhs.b)
+            ;
+}
+
+std::ostream& operator<<(std::ostream& os, const screen_rgb::lum_rgb& lrgb)
+{
+   os << int(lrgb.lum) << " "
+      << int(lrgb.r  ) << " "
+      << int(lrgb.g  ) << " "
+      << int(lrgb.b  ) ;
+   return os;
+}
+
 void screen_rgb::draw() 
 {
    //allocate
    int Y = height / dH, X = width / dW;
 
    int inv = 1 / (dH * dW);
-
-   int r_prev = 255;
-   int g_prev = 255;
-   int b_prev = 255;
-
+   
    this->frame_buffer_head = frame_buffer.get();
 
-   for (int y = 0; y < Y; ++y) 
+   int count = 0;
+   for (int y = 0; y < height; ++y) 
    {
       frame_buffer_head += my_move(frame_buffer_head, 0, y);
 
-      for (int x = 0; x < X; ++x) 
+      for (int x = 0; x < width; ++x) 
       {
-         color_rgb count{ .r = 0.0f, .g = 0.0f, .b = 0.0f};
+         //std::cout << " x           : " << x << std::endl;
+         //std::cout << " y           : " << y << std::endl;
+         //std::cout << " x_prev      : " << x_prev << std::endl;
+         //std::cout << " y_prev      : " << y_prev << std::endl;
+         //std::cout << " count       : " << count << std::endl;
+         //std::cout << " canvas      : " << canvas     [count] << std::endl;
+         //std::cout << " canvas_last : " << canvas_last[count] << std::endl;
 
-         // calculating brightness
-         for (int h = 0; h < dH; ++h) 
-         {
-            for (int w = 0; w < dW; ++w) 
-            {
-               count += canvas[(dH * y + h)* width +(dW * x + w)];
-            }
-         }
+         //if(canvas[count] != canvas_last[count])
+         //{
+         //   //std::cout << " NOT EQUAL " << std::endl;
+         //   lum_rgb curr = canvas[count];
 
-         //std::cout << count  << std::endl;
+         //   if( (y != y_prev) || (x != (x_prev + 1)) )
+         //   {
+         //      //std::cout << " MOVING " << std::endl;
+         //      frame_buffer_head += my_move(frame_buffer_head, x, y);
+         //   }
+
+         //   if( curr.r != prev.r || curr.g != prev.g || curr.b != prev.b )
+         //   {
+         //      frame_buffer_head += colorize(frame_buffer_head, curr.r, curr.g, curr.b);
+         //   }
+
+         //   //frame_buffer_head += my_addch(frame_buffer_head, brightness(curr.lum));
+         //   frame_buffer_head += my_addch(frame_buffer_head, ' ');
+         //   
+         //   prev   = curr;
+         //   x_prev = x;
+         //   y_prev = y;
+         //}
          
-         count.r /= (dH * dW);
-         count.g /= (dH * dW);
-         count.b /= (dH * dW);
-         
-         count.apply_gamma_correction(1.0, 2.2);
-         
-         //count *= inv;
-            //{  .r = static_cast<unsigned char>(clamp(result.r, 0.0f, 1.0f) * 255.0f)
-            //,  .g = static_cast<unsigned char>(clamp(result.g, 0.0f, 1.0f) * 255.0f)
-            //,  .b = static_cast<unsigned char>(clamp(result.b, 0.0f, 1.0f) * 255.0f)
-            //};
-         //std::cout << "Luminance  : " << luminance(count) << std::endl;
-         //std::cout << "Luminance  : " << static_cast<int>(clamp(luminance(count), 0.0f, 1.0f) * 255.0f) << std::endl;
-         //std::cout << "Brightness : " << brightness(static_cast<int>(clamp(luminance(count), 0.0f, 1.0f) * 255.0f)) << std::endl;;
-
-         auto br = brightness(static_cast<int>(clamp(luminance(count), 0.0f, 1.0f) * 255.0f));
-         auto r  = static_cast<unsigned char>(clamp(count.r, 0.0f, 1.0f) * 255.0f);
-         auto g  = static_cast<unsigned char>(clamp(count.g, 0.0f, 1.0f) * 255.0f);
-         auto b  = static_cast<unsigned char>(clamp(count.b, 0.0f, 1.0f) * 255.0f);
-
-         if( r != r_prev || g != g_prev || b != b_prev )
-            frame_buffer_head += colorize(frame_buffer_head, r, g, b);
-
+         lum_rgb curr = canvas[count];
+         //std::cout << x << " " << y << " " << curr << std::endl;
+         frame_buffer_head += colorize(frame_buffer_head, curr.r, curr.g, curr.b);
+         //frame_buffer_head += my_addch(frame_buffer_head, brightness(curr.lum));
          frame_buffer_head += my_addch(frame_buffer_head, ' ');
 
-         r_prev = r;
-         g_prev = g;
-         b_prev = b;
+         ++count;
       }
    }
+
    (*frame_buffer_head) = '\0';
+
+   memcpy(canvas_last.get(), canvas.get(), height * width * sizeof(lum_rgb));
 }
 
 void screen_rgb::refresh()

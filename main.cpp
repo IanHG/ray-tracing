@@ -51,22 +51,37 @@ void render_screen_rgb
    {
       for(int x = 0; x < scr.width; ++x)
       {
+         //// calculating brightness
+         //for (int h = 0; h < dH; ++h) 
+         //{
+         //   for (int w = 0; w < dW; ++w) 
+         //   {
+         //      count += canvas[(dH * y + h)* width +(dW * x + w)];
+         //   }
+         //}
+
          vector2f screen_coord
             {  ( 2.0f * x) / scr.width  - 1.0f
-            ,  (-2.0f * y) / scr.height + 1.0f
+            ,  (-2.0f * 2 *  y) / scr.height + 1.0f
             };
 
          ray r = cam->make_ray(screen_coord);
 
          color_rgb result = ray_trace(r, scene, lig);
 
-         //std::cout << result << std::endl;
+         result.apply_gamma_correction(1.0, 2.2);
 
-         scr.canvas[count] = result;
-            //{  .r = static_cast<unsigned char>(clamp(result.r, 0.0f, 1.0f) * 255.0f)
-            //,  .g = static_cast<unsigned char>(clamp(result.g, 0.0f, 1.0f) * 255.0f)
-            //,  .b = static_cast<unsigned char>(clamp(result.b, 0.0f, 1.0f) * 255.0f)
-            //};
+         //auto& lrgb = scr.canvas[count];
+         //lrgb.lum = static_cast<unsigned char>(clamp(luminance(result), 0.0f, 1.0f) * 255.0f);
+         //lrgb.r   = static_cast<unsigned char>(clamp(result.r, 0.0f, 1.0f) * 255.0f);
+         //lrgb.g   = static_cast<unsigned char>(clamp(result.g, 0.0f, 1.0f) * 255.0f);
+         //lrgb.b   = static_cast<unsigned char>(clamp(result.b, 0.0f, 1.0f) * 255.0f);
+         scr.canvas[count].lum = static_cast<unsigned char>(clamp(luminance(result), 0.0f, 1.0f) * 255.0f);
+         scr.canvas[count].r   = static_cast<unsigned char>(clamp(result.r, 0.0f, 1.0f) * 255.0f);
+         scr.canvas[count].g   = static_cast<unsigned char>(clamp(result.g, 0.0f, 1.0f) * 255.0f);
+         scr.canvas[count].b   = static_cast<unsigned char>(clamp(result.b, 0.0f, 1.0f) * 255.0f);
+
+         //std::cout << " update     : " << lrgb << std::endl;
 
          ++count;
       }
@@ -158,7 +173,9 @@ void render_image_ssaa
 int main(int argc, const char* argv[])
 {
    int width  = 210;
-   int height = 2 * 56;
+   int height = 100;
+   //int width  = 210;
+   //int height = 2 * 56;
    //int width  = 640;
    //int height = 320;
    //int width  = 800;
@@ -225,6 +242,7 @@ int main(int argc, const char* argv[])
    //img.save_image("img.ppm", 1.0, 2.2);
    //
    //Screen scr{width, height};
+   
    initscr();
    keypad(stdscr, TRUE);
    cbreak();
