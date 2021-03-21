@@ -6,23 +6,11 @@
  **/
 
 #include <iostream>
+#include <stdio.h>
 #include <string>
 #include <ncurses.h>
 
 typedef unsigned char byte;
-
-/*
-Possible ratios
- 4 : 6
- 6 : 8
- 8 : 8
-16 : 8
- 5 : 12
- 7 : 12
-16 : 12
-12 : 16
-10 : 18
-*/
 
 constexpr int dW = 1, dH = 2;
 
@@ -49,7 +37,7 @@ class Screen
          }
       }
 
-      void draw_point(int x, int y, byte luminance = 255) 
+      void draw_point(int x, int y, int luminance)
       {
          if (x < 0 || y < 0 || x >= width || y >= height) 
          {
@@ -123,11 +111,10 @@ class Screen
       }
 
    private:
-      int   palette = 1;
+      int   palette = 2;
       int   width   = 0;
       int   height  = 0;
-      //int   dW      = 0;
-      //int   dH      = 0;
+      
       std::unique_ptr<byte[]> canvas = nullptr;
 
       void Setup();
@@ -138,15 +125,16 @@ class Screen
          static const struct 
          {
             int n;
-            const char s[19];
+            const char s[27];
          } p[] 
             =  {  {7, " .:+%#@"}
                ,  {18, " .,^:-+abcdwf$&%#@"}
+               ,  {26, " .,:;'\"<>i!()[](){}*8B%$#@"}
                ,  {3, " .:"}
                ,  {10, " .:-=+*#%@"}
                };
 
-         if (0 <= palette && palette <= 3) 
+         if (0 <= palette && palette <= 4) 
          {
             const auto &pal = p[palette];
             return pal.s[count * (pal.n) / 256 / dW / dH];

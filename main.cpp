@@ -7,6 +7,7 @@
 #include "image.hpp"
 #include "Camera.hpp"
 #include "screen.hpp"
+#include "screen_rgb.hpp"
 #include "frame.hpp"
 
 #define PI 3.141592f
@@ -41,13 +42,44 @@ color_rgb ray_trace
    }
 }
 
-void render_screen
+void render_screen_rgb
+   (  screen_rgb& scr, Camera* cam, Shape* scene, light* lig
+   )
+{
+   int count = 0;
+   for(int y = 0; y < scr.height; ++y)
+   {
+      for(int x = 0; x < scr.width; ++x)
+      {
+         vector2f screen_coord
+            {  ( 2.0f * x) / scr.width  - 1.0f
+            ,  (-2.0f * y) / scr.height + 1.0f
+            };
+
+         ray r = cam->make_ray(screen_coord);
+
+         color_rgb result = ray_trace(r, scene, lig);
+
+         //std::cout << result << std::endl;
+
+         scr.canvas[count] = result;
+            //{  .r = static_cast<unsigned char>(clamp(result.r, 0.0f, 1.0f) * 255.0f)
+            //,  .g = static_cast<unsigned char>(clamp(result.g, 0.0f, 1.0f) * 255.0f)
+            //,  .b = static_cast<unsigned char>(clamp(result.b, 0.0f, 1.0f) * 255.0f)
+            //};
+
+         ++count;
+      }
+   }
+}
+
+void render_screen_grayscale
    (  Screen& scr, Camera* cam, Shape* scene, light* lig
    )
 {
-   for(int x = 0; x < scr.get_width(); ++x)
+   for(int y = 0; y < scr.get_height(); ++y)
    {
-      for(int y = 0; y < scr.get_height(); ++y)
+      for(int x = 0; x < scr.get_width(); ++x)
       {
          vector2f screen_coord
             {  ( 2.0f * x) / scr.get_width()  - 1.0f
@@ -127,6 +159,8 @@ int main(int argc, const char* argv[])
 {
    int width  = 210;
    int height = 2 * 56;
+   //int width  = 640;
+   //int height = 320;
    //int width  = 800;
    //int height = 600;
    //int width  = 1920;
@@ -190,20 +224,28 @@ int main(int argc, const char* argv[])
    //render_image_ssaa(img, &cam, &scene, &lig);
    //img.save_image("img.ppm", 1.0, 2.2);
    //
-   Screen scr{width, height};
+   //Screen scr{width, height};
+   initscr();
+   keypad(stdscr, TRUE);
+   cbreak();
+   noecho();
+   curs_set(0);
+   nodelay(stdscr, true);
    
-   char  ch;
+   screen_rgb scr{width, height};
+   
    float scale       = 0.05f;
    float scale_angle = 1.0f;
    
    constexpr int keyboard_buffer_size = 9;
    char keyboard_buffer[keyboard_buffer_size];
+   int  count = 0;
 
    auto fill_keyboard_buffer = [](char* buffer, int size)
    {
       char ch;
       int count = 0;
-      for(int i = 0; i < size - 1; ++i)
+      for(int i = 0; i < size; ++i)
       {
          if((ch = getch()) != ERR)
          {
@@ -211,35 +253,42 @@ int main(int argc, const char* argv[])
             ++count;
          }
       }
-      buffer[count] = '\0';
 
-      return count != 0;
+      return count;
    };
 
-   while(true)
+   bool run = true;
+   while(run)
    {
-      if((ch = getch()) != ERR)
+      if((count = fill_keyboard_buffer(keyboard_buffer, keyboard_buffer_size)) != 0)
       {
-         if(ch == 'w')
-            position += scale * cam.get_forward();
-         else if(ch == 's')
-            position -= scale * cam.get_forward();
-         else if(ch == 'd')
-            position += scale * cam.get_right();
-         else if(ch == 'a')
-            position -= scale * cam.get_right();
-         else if (ch == 'l')	
-            pitch += scale_angle * 1.0f / 120.0f / 5.0f * (2.0f * PI);
-         else if (ch == 'j')	
-            pitch -= scale_angle * 1.0f / 120.0f / 5.0f * (2.0f * PI);
-         else if (ch == 'i')	
-            yaw += scale_angle * 1.0f / 120.0f / 5.0f * (2.0f * PI);
-         else if (ch == 'k')	
-            yaw -= scale_angle * 1.0f / 120.0f / 5.0f * (2.0f * PI);
-         else if(ch == 'b')
-            sphere1_position += scale * vector3f{0.1f, 0.0f, 0.0f};
-         else if(ch == 'n')
-            sphere1_position -= scale * vector3f{0.1f, 0.0f, 0.0f};
+         for(int i = 0; i < count; ++i)
+         {
+            auto ch = keyboard_buffer[i];
+
+            if(ch == 'w')
+               position += scale * cam.get_forward();
+            if(ch == 's')
+               position -= scale * cam.get_forward();
+            if(ch == 'd')
+               position += scale * cam.get_right();
+            if(ch == 'a')
+               position -= scale * cam.get_right();
+            if (ch == 'l')	
+               pitch += scale_angle * 1.0f / 120.0f / 5.0f * (2.0f * PI);
+            if (ch == 'j')	
+               pitch -= scale_angle * 1.0f / 120.0f / 5.0f * (2.0f * PI);
+            if (ch == 'i')	
+               yaw += scale_angle * 1.0f / 120.0f / 5.0f * (2.0f * PI);
+            if (ch == 'k')	
+               yaw -= scale_angle * 1.0f / 120.0f / 5.0f * (2.0f * PI);
+            if(ch == 'b')
+               sphere1_position += scale * vector3f{0.1f, 0.0f, 0.0f};
+            if(ch == 'n')
+               sphere1_position -= scale * vector3f{0.1f, 0.0f, 0.0f};
+            if(ch == 'q')
+               run = false;
+         }
 
          sphere1.set_center(sphere1_position);
          
@@ -247,12 +296,23 @@ int main(int argc, const char* argv[])
          cam.set_direction(yaw, pitch, roll); 
       }
       
-      render_screen(scr, &cam, &scene, &lig);
-      scr.Draw();
+      //render_screen_grayscale(scr, &cam, &scene, &lig);
+      render_screen_rgb(scr, &cam, &scene, &lig);
+      scr.draw();
       frame.show_frame_rate(scr, 0, 0);
       scr.refresh();
       frame.waitForNextFrame();
    }
+
+   
+   ////init_tty();
+   //my_clear();
+   //std::cout << MOV(2, 2) << std::flush;
+   ////move(1,1);
+   //printf(HCS);
+   //colorize('a', 100, 123, 5);
+   //printf(SCS);
+   ////restore_tty();
 
    return 0;
 }

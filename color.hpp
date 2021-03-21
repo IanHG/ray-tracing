@@ -159,7 +159,16 @@ inline std::ostream& operator<<(std::ostream& ostr, const color_rgb& col)
 inline float convert_to_grayscale(const color_rgb& col)
 {
    //return 0.299f * col.r + 0.587f * col.g + 0.114f * col.b;
+   //return 0.2126f * col.r + 0.7152f * col.g + 0.0722f * col.b;
    return (col.r + col.g + col.b)/ 3.0f;
+}
+
+// luminance formula credits: https://stackoverflow.com/a/596243
+// >>> Luminance = 0.2126*R + 0.7152*G + 0.0722*B <<<
+inline float luminance(const color_rgb col)
+{
+   return 0.299f * col.r + 0.587f * col.g + 0.114f * col.b;
+   //return 0.2126f * col.r + 0.7152f * col.g + 0.0722f * col.b;
 }
 
 #endif /* RAY_TRACER_COLOR_HPP_INCLUDED */
