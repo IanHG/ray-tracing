@@ -46,28 +46,41 @@ void render_screen_rgb
    (  screen_rgb& scr, Camera* cam, Shape* scene, light* lig
    )
 {
+   float jitter_matrix[4 * 2] = 
+   {  -1.0/4.0,  3.0/4.0
+   ,   3.0/4.0,  1.0/4.0
+   ,  -3.0/4.0, -1.0/4.0
+   ,   1.0/4.0, -3.0/4.0
+   };
+
    int count = 0;
    for(int y = 0; y < scr.height; ++y)
    {
       for(int x = 0; x < scr.width; ++x)
       {
-         //// calculating brightness
-         //for (int h = 0; h < dH; ++h) 
-         //{
-         //   for (int w = 0; w < dW; ++w) 
-         //   {
-         //      count += canvas[(dH * y + h)* width +(dW * x + w)];
-         //   }
-         //}
+         color_rgb result{ .r = 0.0f, .g = 0.0f, .b = 0.0f };
+         for(int sample = 0; sample < 4; ++sample)
+         {
+            vector2f screen_coord
+               {  ( 2.0f * (x + jitter_matrix[2 * sample + 0])) / scr.width  - 1.0f
+               ,  (-2.0f * (y + jitter_matrix[2 * sample + 1])) / scr.height + 1.0f
+               };
+            
+            ray r = cam->make_ray(screen_coord);
 
-         vector2f screen_coord
-            {  ( 2.0f * x) / scr.width  - 1.0f
-            ,  (-2.0f * 2 * y) / scr.height + 1.0f
-            };
+            result += /*0.5f * */ ray_trace(r, scene, lig);
+         }
 
-         ray r = cam->make_ray(screen_coord);
+         result *= 0.25f;
 
-         color_rgb result = ray_trace(r, scene, lig);
+         //vector2f screen_coord
+         //   {  ( 2.0f * x) / scr.width  - 1.0f
+         //   ,  (-2.0f * y) / scr.height + 1.0f
+         //   };
+
+         //ray r = cam->make_ray(screen_coord);
+
+         //color_rgb result = ray_trace(r, scene, lig);
 
          result.apply_gamma_correction(1.0, 2.2);
 
@@ -173,7 +186,7 @@ void render_image_ssaa
 int main(int argc, const char* argv[])
 {
    int width  = 210;
-   int height = 112;
+   int height = 56;
    //int width  = 210;
    //int height = 2 * 56;
    //int width  = 640;
@@ -195,7 +208,7 @@ int main(int argc, const char* argv[])
       ,  vector3f{ 0.0f, 1.0f, 0.0f}
       ,  vector3f{ 0.0f, 1.0f, 0.0f}
       ,  PI / 4.0f
-      ,  (float) width / (float) height
+      ,  0.5f * (float) width / (float) height
       };
 
    ShapeSet scene;
@@ -243,12 +256,12 @@ int main(int argc, const char* argv[])
    //
    //Screen scr{width, height};
    
-   //initscr();
-   //keypad(stdscr, TRUE);
-   //cbreak();
-   //noecho();
-   //curs_set(0);
-   //nodelay(stdscr, true);
+   initscr();
+   keypad(stdscr, TRUE);
+   cbreak();
+   noecho();
+   curs_set(0);
+   nodelay(stdscr, true);
    
    screen_rgb scr{width, height};
    
