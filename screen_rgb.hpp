@@ -247,9 +247,14 @@ void screen_rgb::draw()
          
          lum_rgb curr = canvas[count];
          //std::cout << x << " " << y << " " << curr << std::endl;
-         frame_buffer_head += colorize(frame_buffer_head, curr.r, curr.g, curr.b);
+         if( curr.r != prev.r || curr.g != prev.g || curr.b != prev.b )
+         {
+            frame_buffer_head += colorize(frame_buffer_head, curr.r, curr.g, curr.b);
+         }
+         //frame_buffer_head += colorize(frame_buffer_head, curr.r, curr.g, curr.b);
          //frame_buffer_head += my_addch(frame_buffer_head, brightness(curr.lum));
          frame_buffer_head += my_addch(frame_buffer_head, ' ');
+         prev   = curr;
 
          ++count;
       }

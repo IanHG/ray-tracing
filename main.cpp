@@ -62,7 +62,7 @@ void render_screen_rgb
 
          vector2f screen_coord
             {  ( 2.0f * x) / scr.width  - 1.0f
-            ,  (-2.0f * 2 *  y) / scr.height + 1.0f
+            ,  (-2.0f * 2 * y) / scr.height + 1.0f
             };
 
          ray r = cam->make_ray(screen_coord);
@@ -173,7 +173,7 @@ void render_image_ssaa
 int main(int argc, const char* argv[])
 {
    int width  = 210;
-   int height = 100;
+   int height = 112;
    //int width  = 210;
    //int height = 2 * 56;
    //int width  = 640;
