@@ -3,3 +3,5 @@
 *.x
 *.ppm
 *.png
+*.out*
+*.log
